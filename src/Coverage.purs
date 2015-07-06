@@ -4,38 +4,45 @@ import Math
 import Prelude
 
 type Milimiters = Number
+type Meters = Number
 type Degrees = Number
+type FocalLength = Milimiters
 
-type Camera = {
-  name :: String
-  , sensorWidth :: Milimiters
-  , sensorHeight :: Milimiters
-}
+data Sensor = Sensor Milimiters Milimiters
 
-type CameraLens = {
-  focalLength :: Milimiters
-}
-
-type Settings = {
-  camera :: Camera
-  , lens :: CameraLens
+data UAVSettings = UAVSettings {
+  sensor :: Sensor
+  , focalLength :: FocalLength
   , gimbalX :: Number
   , gimbalY :: Number
-  , altitude :: Number
+  , groundAltitude :: Meters
 }
 
-type Fov = { x :: Degrees, y :: Degrees }
+data Footprint = Footprint Meters Meters
 
-fov :: Camera -> CameraLens -> Fov
-fov camera lens = { x: fovx, y: fovy } :: Fov
+data Fov = Fov Degrees Degrees
+
+settingsSensor :: UAVSettings -> Sensor
+settingsSensor (UAVSettings { sensor = s }) = s
+
+settingsLens :: UAVSettings -> FocalLength
+settingsLens (UAVSettings { focalLength = l }) = l
+
+settingsAltitude :: UAVSettings -> Meters
+settingsAltitude (UAVSettings { altitude = a }) = a
+
+fov :: Sensor -> FocalLength -> Fov
+fov (Sensor w h) fl = Fov fovx fovy
   where
-    fovx = 2.0 * (degrees (atan (camera.sensorWidth / (2.0 * lens.focalLength))))
-    fovy = 2.0 * (degrees (atan (camera.sensorHeight / (2.0 * lens.focalLength))))
+    fovx = 2.0 * (degrees $ atan (w / (2.0 * fl)))
+    fovy = 2.0 * (degrees $ atan (h / (2.0 * fl)))
+
+footprint :: UAVSettings -> Footprint
+footprint s = Footprint tall wide
+  where
+    view = fov (settingsSensor s) (settingsLens s)
+    tall = (settingsAltitude s) *
+    wide = 2
 
 degrees :: Number -> Number
 degrees r = r * (180.0 / Math.pi)
-
-test = let
-  camera = { name: "Foo", sensorWidth: 36.0, sensorHeight: 24.0 } :: Camera
-  lens = { focalLength: 20.0 }
-  in fov camera lens
