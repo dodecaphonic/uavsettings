@@ -101,11 +101,11 @@ motionBlurPixels s = (100.0 * (speed s) / (toNumber $ shutterSpeed s)) / (ground
 imageOverlapMeters :: UAVSettings -> Meters
 imageOverlapMeters s = yMeters - interval
   where
-    yMeters  = groundHeight $ footprint s
+    yMeters  = groundWidth $ footprint s
     interval = imageIntervalMeters s
 
 imageOverlapPercent :: UAVSettings -> Meters
-imageOverlapPercent s = calc (imageOverlapMeters s) (groundHeight $ footprint s)
+imageOverlapPercent s = calc (imageOverlapMeters s) (groundWidth $ footprint s)
   where
     calc m gh = case m of
       v | v <= 0.0 -> 0.0
