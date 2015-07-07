@@ -10,10 +10,16 @@ phantomCamera = { width: 6.17, height: 4.55 }
 phantomLens :: FocalLength
 phantomLens = 5.0
 
+fullFrame :: Sensor
+fullFrame = { width: 36.0, height: 24.0 }
+
+wideAngle :: FocalLength
+wideAngle = 30.0
+
 settings :: UAVSettings
 settings = {
   sensor: phantomCamera
-  , focalLength: 30.0
+  , focalLength: phantomLens
   , imageDimensions: { width: 4384, height: 3288 }
   , speed: 3.0
   , captureInterval: 3.0

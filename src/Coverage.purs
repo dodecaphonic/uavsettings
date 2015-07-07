@@ -52,13 +52,16 @@ pixelWidth s = s.imageDimensions.width
 pixelHeight :: UAVSettings -> Pixels
 pixelHeight s = s.imageDimensions.height
 
-diagonal35mm :: UAVSettings -> Milimeters
-diagonal35mm s = Math.sqrt $ 24.0 * 24.0 + 36.0 * 36.0
+sensorDiagonal :: UAVSettings -> Milimeters
+sensorDiagonal s = let
+  x = s.sensor.width * s.sensor.width
+  y = s.sensor.height * s.sensor.height
+  in Math.sqrt $ x + y
 
 diagonalDegrees :: UAVSettings -> Degrees
 diagonalDegrees s = 180.0 * 2.0 * (x / Math.pi)
   where
-    x = atan $ (diagonal35mm s) / (2.0 * s.focalLength)
+    x = atan $ (sensorDiagonal s) / (2.0 * s.focalLength)
 
 diagonalPixels :: UAVSettings -> Meters
 diagonalPixels s = Math.sqrt(toNumber $ px * px + py * py)
