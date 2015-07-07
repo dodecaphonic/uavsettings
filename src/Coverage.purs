@@ -13,11 +13,11 @@ type Pixels = Int
 type MetersPerSecond = Number
 type Seconds = Number
 
-data Sensor = Sensor Milimeters Milimeters
+type Sensor = { width :: Milimeters, height :: Milimeters }
 
-data ImageDimensions = ImageDimensions Pixels Pixels
+type ImageDimensions = { width :: Pixels, height :: Pixels }
 
-data UAVSettings = UAVSettings {
+type UAVSettings = {
   sensor :: Sensor
   , focalLength :: FocalLength
   , imageDimensions :: ImageDimensions
@@ -29,39 +29,28 @@ data UAVSettings = UAVSettings {
   , groundAltitude :: Meters
 }
 
-data Footprint = Footprint Meters Meters
+type Footprint = { width :: Meters, height :: Meters }
 
-data Fov = Fov Degrees Degrees
+type Fov = { x :: Degrees, y :: Degrees }
 
 sensor :: UAVSettings -> Sensor
-sensor (UAVSettings { sensor = s }) = s
-
-focalLength :: UAVSettings -> FocalLength
-focalLength (UAVSettings { focalLength = l }) = l
-
-altitude :: UAVSettings -> Meters
-altitude (UAVSettings { groundAltitude = a }) = a
-
-speed :: UAVSettings -> MetersPerSecond
-speed (UAVSettings { speed = s }) = s
+sensor s = s.sensor
 
 captureInterval :: UAVSettings -> Seconds
-captureInterval (UAVSettings { captureInterval = c }) = case c of
+captureInterval s = case s.captureInterval of
   i | i <= 0.0 -> 10.0
   i -> i
 
 shutterSpeed :: UAVSettings -> Int
-shutterSpeed (UAVSettings { shutterSpeed = s }) = case s of
+shutterSpeed s @ { shutterSpeed = ss } = case ss of
   v | v <= 0 -> 1000
   v -> v
 
 pixelWidth :: UAVSettings -> Pixels
-pixelWidth (UAVSettings { imageDimensions = dim }) = px dim
-  where px (ImageDimensions x _) = x
+pixelWidth s = s.imageDimensions.width
 
 pixelHeight :: UAVSettings -> Pixels
-pixelHeight (UAVSettings { imageDimensions = dim }) = py dim
-  where py (ImageDimensions _ y) = y
+pixelHeight s = s.imageDimensions.height
 
 diagonal35mm :: UAVSettings -> Milimeters
 diagonal35mm s = Math.sqrt $ 24.0 * 24.0 + 36.0 * 36.0
@@ -69,7 +58,7 @@ diagonal35mm s = Math.sqrt $ 24.0 * 24.0 + 36.0 * 36.0
 diagonalDegrees :: UAVSettings -> Degrees
 diagonalDegrees s = 180.0 * 2.0 * (x / Math.pi)
   where
-    x = atan $ (diagonal35mm s) / (2.0 * (focalLength s))
+    x = atan $ (diagonal35mm s) / (2.0 * s.focalLength)
 
 diagonalPixels :: UAVSettings -> Meters
 diagonalPixels s = Math.sqrt(toNumber $ px * px + py * py)
@@ -80,11 +69,11 @@ diagonalPixels s = Math.sqrt(toNumber $ px * px + py * py)
 diagonalMeters :: UAVSettings -> Meters
 diagonalMeters s = alt * tan
   where
-    alt = altitude s
+    alt = s.groundAltitude
     tan = Math.tan(Math.pi * (diagonalDegrees s) / (2.0 * 180.0))
 
 imageIntervalMeters :: UAVSettings -> Meters
-imageIntervalMeters s = (speed s) * (captureInterval s)
+imageIntervalMeters s = s.speed * (captureInterval s)
 
 angularResolution :: UAVSettings -> Number
 angularResolution s = (diagonalDegrees s) / (diagonalPixels s)
@@ -93,10 +82,10 @@ groundPixelSize :: UAVSettings -> Centimeters
 groundPixelSize s = 100.0 * ((diagonalMeters s) / (diagonalPixels s))
 
 motionBlurCentimeters :: UAVSettings -> Centimeters
-motionBlurCentimeters s = 100.0 * (speed s) / (toNumber $ shutterSpeed s)
+motionBlurCentimeters s = 100.0 * s.speed / (toNumber $ shutterSpeed s)
 
 motionBlurPixels :: UAVSettings -> Number
-motionBlurPixels s = (100.0 * (speed s) / (toNumber $ shutterSpeed s)) / (groundPixelSize s)
+motionBlurPixels s = (100.0 * s.speed / (toNumber $ shutterSpeed s)) / (groundPixelSize s)
 
 imageOverlapMeters :: UAVSettings -> Meters
 imageOverlapMeters s = yMeters - interval
@@ -112,22 +101,22 @@ imageOverlapPercent s = calc (imageOverlapMeters s) (groundWidth $ footprint s)
       v -> 100.0 * v / gh
 
 fov :: Sensor -> FocalLength -> Fov
-fov (Sensor w h) fl = Fov fovx fovy
+fov s fl = { x: fovx, y: fovy }
   where
-    fovx = 2.0 * (degrees $ atan (w / (2.0 * fl)))
-    fovy = 2.0 * (degrees $ atan (h / (2.0 * fl)))
+    fovx = 2.0 * (degrees $ atan (s.width / (2.0 * fl)))
+    fovy = 2.0 * (degrees $ atan (s.height / (2.0 * fl)))
 
 footprint :: UAVSettings -> Footprint
-footprint s = Footprint tall wide
+footprint s = { width: wide, height: tall }
   where
     tall = (toNumber $ pixelHeight s) * (diagonalMeters s) / (diagonalPixels s)
     wide = (toNumber $ pixelWidth s) * (diagonalMeters s) / (diagonalPixels s)
 
 groundHeight :: Footprint -> Meters
-groundHeight (Footprint _ h) = h
+groundHeight f = f.height
 
 groundWidth :: Footprint -> Meters
-groundWidth (Footprint w _) = w
+groundWidth f = f.width
 
 degrees :: Number -> Number
 degrees r = r * (180.0 / Math.pi)

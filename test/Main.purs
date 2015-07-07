@@ -6,16 +6,16 @@ import Coverage
 import Prelude
 
 phantomCamera :: Sensor
-phantomCamera = Sensor 6.17 4.55
+phantomCamera = { width: 6.17, height: 4.55 }
 
 phantomLens :: FocalLength
 phantomLens = 5.0
 
 settings :: UAVSettings
-settings = UAVSettings {
+settings = {
   sensor: phantomCamera
   , focalLength: 30.0
-  , imageDimensions: ImageDimensions 4384 3288
+  , imageDimensions: { width: 4384, height: 3288 }
   , speed: 6.0
   , captureInterval: 3.0
   , shutterSpeed: 250
@@ -24,17 +24,7 @@ settings = UAVSettings {
   , groundAltitude: 100.0
 }
 
-uavAltitude a = UAVSettings {
-  sensor: phantomCamera
-  , focalLength: 30.0
-  , imageDimensions: ImageDimensions 4384 3288
-  , speed: 6.0
-  , captureInterval: 3.0
-  , shutterSpeed: 250
-  , gimbalX: 30.0
-  , gimbalY: 30.0
-  , groundAltitude: a
-}
+uavAltitude a = settings { groundAltitude = a }
 
 altitudeGrowsIncreasesPixelSize :: Meters -> Boolean
 altitudeGrowsIncreasesPixelSize n = ps0 < ps1
