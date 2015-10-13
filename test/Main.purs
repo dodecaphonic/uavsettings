@@ -26,10 +26,35 @@ settings = {
 
 uavAltitude a = settings { groundAltitude = a }
 
+uavFocalLength a = UAVSettings {
+  sensor: phantomCamera
+  , focalLength: a
+  , imageDimensions: ImageDimensions 4384 3288
+  , speed: 6.0
+  , captureInterval: 3.0
+  , shutterSpeed: 250
+  , gimbalX: 30.0
+  , gimbalY: 30.0
+  , groundAltitude: 100.0
+}
+
+focalLengthGrowthReducesGroundCoverage :: FocalLength -> Boolean
+focalLengthGrowthReducesGroundCoverage fl =
+  gwa > gwb && gha > ghb
+  where
+    s  = uavFocalLength fl
+    s' = uavFocalLength $ fl + 10.0
+    gwa = groundWidth $ footprint s
+    gha = groundHeight $ footprint s
+    gwb = groundWidth $ footprint s'
+    ghb = groundHeight $ footprint s'
+
 altitudeGrowsIncreasesPixelSize :: Meters -> Boolean
 altitudeGrowsIncreasesPixelSize n = ps0 < ps1
   where
     ps0 = groundPixelSize $ uavAltitude n
     ps1 = groundPixelSize $ uavAltitude $ n + 10.0
 
-main = quickCheck altitudeGrowsIncreasesPixelSize
+main = do
+  quickCheck altitudeGrowsIncreasesPixelSize
+  quickCheck focalLengthGrowthReducesGroundCoverage
