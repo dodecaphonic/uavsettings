@@ -17,8 +17,9 @@ type Sensor = { width :: Milimeters, height :: Milimeters }
 
 type ImageDimensions = { width :: Pixels, height :: Pixels }
 
-type UAVSettings = {
-  sensor :: Sensor
+type UAVSettings =
+  {
+    sensor :: Sensor
   , focalLength :: FocalLength
   , imageDimensions :: ImageDimensions
   , speed :: MetersPerSecond
@@ -27,22 +28,31 @@ type UAVSettings = {
   , gimbalX :: Number
   , gimbalY :: Number
   , groundAltitude :: Meters
-}
+  }
 
 type Footprint = { width :: Meters, height :: Meters }
 
 type Fov = { x :: Degrees, y :: Degrees }
 
 sensor :: UAVSettings -> Sensor
-sensor s = s.sensor
+sensor ({ sensor = s }) = s
+
+focalLength :: UAVSettings -> FocalLength
+focalLength ({ focalLength = l }) = l
+
+altitude :: UAVSettings -> Meters
+altitude ({ groundAltitude = a }) = a
+
+speed :: UAVSettings -> MetersPerSecond
+speed ({ speed = s }) = s
 
 captureInterval :: UAVSettings -> Seconds
-captureInterval s = case s.captureInterval of
+captureInterval ({ captureInterval = c }) = case c of
   i | i <= 0.0 -> 10.0
   i -> i
 
 shutterSpeed :: UAVSettings -> Int
-shutterSpeed s @ { shutterSpeed = ss } = case ss of
+shutterSpeed ({ shutterSpeed = s }) = case s of
   v | v <= 0 -> 1000
   v -> v
 
