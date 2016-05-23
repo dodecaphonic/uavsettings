@@ -1,9 +1,19 @@
 module Test.Main where
 
-import Control.Monad.Eff.Console
-import Test.QuickCheck
-import Coverage
-import Prelude
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Random (RANDOM)
+import Control.Monad.Eff.Exception (EXCEPTION)
+import Test.QuickCheck (quickCheck)
+import Prelude (Unit, bind, (<), (+), ($), (>), (&&))
+import Coverage ( FocalLength
+                , Sensor
+                , UAVSettings
+                , Meters
+                , groundWidth
+                , groundHeight
+                , groundPixelSize
+                , footprint)
 
 phantomCamera :: Sensor
 phantomCamera = { width: 6.17, height: 4.55 }
@@ -42,6 +52,9 @@ altitudeGrowsIncreasesPixelSize n = ps0 < ps1
     ps0 = groundPixelSize $ settings { groundAltitude = n }
     ps1 = groundPixelSize $ settings { groundAltitude = (n + 10.0) }
 
+main :: forall eff. Eff (console :: CONSOLE
+                        , random :: RANDOM
+                        , err :: EXCEPTION | eff) Unit
 main = do
   quickCheck altitudeGrowsIncreasesPixelSize
   quickCheck focalLengthGrowthReducesGroundCoverage

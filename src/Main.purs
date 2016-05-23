@@ -1,7 +1,8 @@
 module Main where
 
-import Control.Monad.Eff.Console
-import Prelude
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE, log)
+import Prelude (Unit, show, ($), (++))
 import Coverage
 
 phantomCamera :: Sensor
@@ -29,16 +30,15 @@ settings = {
   , groundAltitude: 100.0
 }
 
+main :: forall eff. Eff (console :: CONSOLE | eff) Unit
 main = do
-  display
+  log $ "Ground pixel size is " ++ (show gpx) ++ "\n" ++
+        "Image overlap (m) is " ++ (show $ imageOverlapMeters settings) ++ "\n" ++
+        "Image overlap (%) is " ++ (show $ imageOverlapPercent settings) ++ "\n" ++
+        "Image interval (m) is " ++ (show $ imageIntervalMeters settings) ++ "\n" ++
+        "Image x size is " ++ (show $ groundHeight $ footprint settings) ++ "\n" ++
+        "Image y size is " ++ (show $ groundWidth $ footprint settings) ++ "\n" ++
+        "Motion blur (cm) is " ++ (show $ motionBlurCentimeters settings) ++ "\n" ++
+        "Motion blur (px) is " ++ (show $ motionBlurPixels settings) ++ "\n"
   where
-    f = fov phantomCamera phantomLens
     gpx = groundPixelSize settings
-    display = log $ "Ground pixel size is " ++ (show gpx) ++ "\n" ++
-      "Image overlap (m) is " ++ (show $ imageOverlapMeters settings) ++ "\n" ++
-      "Image overlap (%) is " ++ (show $ imageOverlapPercent settings) ++ "\n" ++
-      "Image interval (m) is " ++ (show $ imageIntervalMeters settings) ++ "\n" ++
-      "Image x size is " ++ (show $ groundHeight $ footprint settings) ++ "\n" ++
-      "Image y size is " ++ (show $ groundWidth $ footprint settings) ++ "\n" ++
-      "Motion blur (cm) is " ++ (show $ motionBlurCentimeters settings) ++ "\n" ++
-      "Motion blur (px) is " ++ (show $ motionBlurPixels settings) ++ "\n"

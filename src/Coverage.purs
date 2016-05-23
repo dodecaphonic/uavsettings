@@ -40,6 +40,9 @@ sensor ({ sensor = s }) = s
 focalLength :: UAVSettings -> FocalLength
 focalLength ({ focalLength = l }) = l
 
+focalSize :: UAVSettings -> FocalLength
+focalSize s = s.focalLength
+
 altitude :: UAVSettings -> Meters
 altitude ({ groundAltitude = a }) = a
 
