@@ -11,8 +11,6 @@ import UAVSettings.Units (Meters(Meters), FocalLength)
 import UAVSettings.Coverage
   ( Sensor
   , UAVSettings
-  , groundWidth
-  , groundHeight
   , groundPixelSize
   , footprint
   , imageOverlapMeters
@@ -53,10 +51,10 @@ focalLengthGrowthReducesGroundCoverage fl =
   where
     s  = settings { focalLength = fl }
     s' = settings { focalLength = fl + 10.0 }
-    gwa = groundWidth $ footprint s
-    gha = groundHeight $ footprint s
-    gwb = groundWidth $ footprint s'
-    ghb = groundHeight $ footprint s'
+    gwa = (footprint s).width
+    gha = (footprint s).height
+    gwb = (footprint s').width
+    ghb = (footprint s').height
 
 altitudeIncrease :: forall a. (Ord a) => (UAVSettings -> a) -> Meters -> Meters -> Boolean
 altitudeIncrease f alt inc =

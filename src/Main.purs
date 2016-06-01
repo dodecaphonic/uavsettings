@@ -37,8 +37,8 @@ main = do
         "Image overlap (m) is " ++ (show $ imageOverlapMeters settings) ++ "\n" ++
         "Image overlap (%) is " ++ (show $ imageOverlapPercent settings) ++ "\n" ++
         "Image interval (m) is " ++ (show $ imageIntervalMeters settings) ++ "\n" ++
-        "Image x size is " ++ (show $ groundHeight $ footprint settings) ++ "\n" ++
-        "Image y size is " ++ (show $ groundWidth $ footprint settings) ++ "\n" ++
+        "Image x size is " ++ (show $ (footprint settings).height) ++ "\n" ++
+        "Image y size is " ++ (show $ (footprint settings).width) ++ "\n" ++
         "Motion blur (cm) is " ++ (show $ motionBlurCentimeters settings) ++ "\n" ++
         "Motion blur (px) is " ++ (show $ motionBlurPixels settings) ++ "\n" ++
         "FOV wide (m) is " ++ (show $ fov.x) ++ "\n" ++
