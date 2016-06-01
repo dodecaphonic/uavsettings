@@ -23,22 +23,24 @@ settings = {
   , focalLength: phantomLens
   , imageDimensions: { width: 4384, height: 3288 }
   , speed: 3.0
-  , captureInterval: 3.0
-  , shutterSpeed: 250
+  , captureInterval: 6.0
+  , shutterSpeed: 1000
   , gimbalX: 30.0
   , gimbalY: 30.0
-  , groundAltitude: 100.0
+  , groundAltitude: 300.0
 }
 
 main :: forall eff. Eff (console :: CONSOLE | eff) Unit
 main = do
-  log $ "Ground pixel size is " ++ (show gpx) ++ "\n" ++
+  log $ "Ground pixel size is " ++ (show $ groundPixelSize settings) ++ "\n" ++
         "Image overlap (m) is " ++ (show $ imageOverlapMeters settings) ++ "\n" ++
         "Image overlap (%) is " ++ (show $ imageOverlapPercent settings) ++ "\n" ++
         "Image interval (m) is " ++ (show $ imageIntervalMeters settings) ++ "\n" ++
         "Image x size is " ++ (show $ groundHeight $ footprint settings) ++ "\n" ++
         "Image y size is " ++ (show $ groundWidth $ footprint settings) ++ "\n" ++
         "Motion blur (cm) is " ++ (show $ motionBlurCentimeters settings) ++ "\n" ++
-        "Motion blur (px) is " ++ (show $ motionBlurPixels settings) ++ "\n"
+        "Motion blur (px) is " ++ (show $ motionBlurPixels settings) ++ "\n" ++
+        "FOV wide (m) is " ++ (show $ fov.x) ++ "\n" ++
+        "FOV tall (m) is " ++ (show $ fov.y) ++ "\n"
   where
-    gpx = groundPixelSize settings
+    fov = fieldOfView settings

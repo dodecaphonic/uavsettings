@@ -1,25 +1,24 @@
 module Coverage where
 
-import Math
+import Math (atan)
 import Prelude
 import Data.Int (toNumber)
 
 type Milimeters = Number
 type Centimeters = Number
-type Meters = Number
 type Degrees = Number
 type FocalLength = Milimeters
 type Pixels = Int
 type MetersPerSecond = Number
 type Seconds = Number
+type Meters = Number
 
 type Sensor = { width :: Milimeters, height :: Milimeters }
 
 type ImageDimensions = { width :: Pixels, height :: Pixels }
 
 type UAVSettings =
-  {
-    sensor :: Sensor
+  { sensor :: Sensor
   , focalLength :: FocalLength
   , imageDimensions :: ImageDimensions
   , speed :: MetersPerSecond
@@ -86,7 +85,7 @@ diagonalMeters :: UAVSettings -> Meters
 diagonalMeters s = alt * tan
   where
     alt = s.groundAltitude
-    tan = Math.tan(Math.pi * (diagonalDegrees s) / (2.0 * 180.0))
+    tan = Math.tan $ Math.pi * (diagonalDegrees s) / (2.0 * 180.0)
 
 imageIntervalMeters :: UAVSettings -> Meters
 imageIntervalMeters s = s.speed * (captureInterval s)
@@ -116,11 +115,11 @@ imageOverlapPercent s = calc (imageOverlapMeters s) (groundWidth $ footprint s)
       v | v <= 0.0 -> 0.0
       v -> 100.0 * v / gh
 
-fov :: Sensor -> FocalLength -> Fov
-fov s fl = { x: fovx, y: fovy }
+fieldOfView :: UAVSettings -> Fov
+fieldOfView ({ focalLength = fl, sensor = s }) = { x, y }
   where
-    fovx = 2.0 * (degrees $ atan (s.width / (2.0 * fl)))
-    fovy = 2.0 * (degrees $ atan (s.height / (2.0 * fl)))
+    x = 2.0 * (degrees $ atan (s.width / (2.0 * fl)))
+    y = 2.0 * (degrees $ atan (s.height / (2.0 * fl)))
 
 footprint :: UAVSettings -> Footprint
 footprint s = { width: wide, height: tall }

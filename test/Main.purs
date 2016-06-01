@@ -5,7 +5,7 @@ import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Random (RANDOM)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Test.QuickCheck (quickCheck)
-import Prelude (Unit, bind, (<), (+), ($), (>), (&&))
+import Prelude (Unit, bind, (<), (+), ($), (>), (<=), (&&), (==))
 import Coverage ( FocalLength
                 , Sensor
                 , UAVSettings
@@ -13,7 +13,11 @@ import Coverage ( FocalLength
                 , groundWidth
                 , groundHeight
                 , groundPixelSize
-                , footprint)
+                , footprint
+                , imageOverlapMeters
+                , imageOverlapPercent
+                , shutterSpeed
+                )
 
 phantomCamera :: Sensor
 phantomCamera = { width: 6.17, height: 4.55 }
@@ -35,6 +39,13 @@ settings =
   , groundAltitude: 100.0
 }
 
+shutterSpeedDefaultsWhenValueIsNegative :: Int -> Boolean
+shutterSpeedDefaultsWhenValueIsNegative speed =
+  if speed < 0 then usedSpeed == 1000 else usedSpeed == speed
+  where
+    settings' = settings { shutterSpeed = speed }
+    usedSpeed = shutterSpeed settings'
+
 focalLengthGrowthReducesGroundCoverage :: FocalLength -> Boolean
 focalLengthGrowthReducesGroundCoverage fl =
   gwa > gwb && gha > ghb
@@ -46,15 +57,28 @@ focalLengthGrowthReducesGroundCoverage fl =
     gwb = groundWidth $ footprint s'
     ghb = groundHeight $ footprint s'
 
-altitudeGrowsIncreasesPixelSize :: Meters -> Boolean
-altitudeGrowsIncreasesPixelSize n = ps0 < ps1
+altitudeIncrease :: (UAVSettings -> Meters) -> Meters -> Meters -> Boolean
+altitudeIncrease f alt inc =
+  if alt + inc > alt then a < b else b <= a
   where
-    ps0 = groundPixelSize $ settings { groundAltitude = n }
-    ps1 = groundPixelSize $ settings { groundAltitude = (n + 10.0) }
+    a = f $ settings { groundAltitude = alt }
+    b = f $ settings { groundAltitude = alt + inc }
 
-main :: forall eff. Eff (console :: CONSOLE
+altitudeChangesAffectPixelSize :: Meters -> Meters -> Boolean
+altitudeChangesAffectPixelSize = altitudeIncrease groundPixelSize
+
+altitudeChangesAffectImageOverlapMeters :: Meters -> Meters -> Boolean
+altitudeChangesAffectImageOverlapMeters = altitudeIncrease imageOverlapMeters
+
+altitudeChangesAffectImageOverlapPercent :: Meters -> Meters -> Boolean
+altitudeChangesAffectImageOverlapPercent = altitudeIncrease imageOverlapPercent
+
+main :: forall eff. Eff ( console :: CONSOLE
                         , random :: RANDOM
-                        , err :: EXCEPTION | eff) Unit
+                        , err :: EXCEPTION | eff ) Unit
 main = do
-  quickCheck altitudeGrowsIncreasesPixelSize
+  quickCheck shutterSpeedDefaultsWhenValueIsNegative
   quickCheck focalLengthGrowthReducesGroundCoverage
+  quickCheck altitudeChangesAffectPixelSize
+  quickCheck altitudeChangesAffectImageOverlapMeters
+  quickCheck altitudeChangesAffectImageOverlapPercent
