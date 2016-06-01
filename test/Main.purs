@@ -5,19 +5,20 @@ import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Random (RANDOM)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Test.QuickCheck (quickCheck)
-import Prelude (Unit, bind, (<), (+), ($), (>), (<=), (&&), (==))
-import Coverage ( FocalLength
-                , Sensor
-                , UAVSettings
-                , Meters
-                , groundWidth
-                , groundHeight
-                , groundPixelSize
-                , footprint
-                , imageOverlapMeters
-                , imageOverlapPercent
-                , shutterSpeed
-                )
+
+import Prelude (class Ord, Unit, bind, (<), (+), ($), (>), (<=), (&&), (==))
+import UAVSettings.Units (Meters(Meters), FocalLength)
+import UAVSettings.Coverage
+  ( Sensor
+  , UAVSettings
+  , groundWidth
+  , groundHeight
+  , groundPixelSize
+  , footprint
+  , imageOverlapMeters
+  , imageOverlapPercent
+  , shutterSpeed
+  )
 
 phantomCamera :: Sensor
 phantomCamera = { width: 6.17, height: 4.55 }
@@ -30,13 +31,13 @@ settings =
   {
     sensor: phantomCamera
   , focalLength: phantomLens
-  , imageDimensions: { width: 4384, height: 3288 }
+  , imageDimensions: { width: 4384.0, height: 3288.0 }
   , speed: 6.0
   , captureInterval: 3.0
   , shutterSpeed: 250
   , gimbalX: 30.0
   , gimbalY: 30.0
-  , groundAltitude: 100.0
+  , groundAltitude: Meters 100.0
 }
 
 shutterSpeedDefaultsWhenValueIsNegative :: Int -> Boolean
@@ -57,7 +58,7 @@ focalLengthGrowthReducesGroundCoverage fl =
     gwb = groundWidth $ footprint s'
     ghb = groundHeight $ footprint s'
 
-altitudeIncrease :: (UAVSettings -> Meters) -> Meters -> Meters -> Boolean
+altitudeIncrease :: forall a. (Ord a) => (UAVSettings -> a) -> Meters -> Meters -> Boolean
 altitudeIncrease f alt inc =
   if alt + inc > alt then a < b else b <= a
   where

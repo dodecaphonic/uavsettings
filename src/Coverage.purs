@@ -1,54 +1,32 @@
-module Coverage where
+module UAVSettings.Coverage where
 
 import Math (atan)
 import Prelude
 import Data.Int (toNumber)
 
-type Milimeters = Number
-type Centimeters = Number
-type Degrees = Number
-type FocalLength = Milimeters
-type Pixels = Int
-type MetersPerSecond = Number
-type Seconds = Number
-type Meters = Number
+import UAVSettings.Units as U
 
-type Sensor = { width :: Milimeters, height :: Milimeters }
+type Sensor = { width :: U.Milimeters, height :: U.Milimeters }
 
-type ImageDimensions = { width :: Pixels, height :: Pixels }
+type ImageDimensions = { width :: U.Pixels, height :: U.Pixels }
 
 type UAVSettings =
   { sensor :: Sensor
-  , focalLength :: FocalLength
+  , focalLength :: U.FocalLength
   , imageDimensions :: ImageDimensions
-  , speed :: MetersPerSecond
-  , captureInterval :: Seconds
+  , speed :: U.MetersPerSecond
+  , captureInterval :: U.Seconds
   , shutterSpeed :: Int
   , gimbalX :: Number
   , gimbalY :: Number
-  , groundAltitude :: Meters
+  , groundAltitude :: U.Meters
   }
 
-type Footprint = { width :: Meters, height :: Meters }
+type Footprint = { width :: U.Meters, height :: U.Meters }
 
-type Fov = { x :: Degrees, y :: Degrees }
+type Fov = { x :: U.Degrees, y :: U.Degrees }
 
-sensor :: UAVSettings -> Sensor
-sensor ({ sensor = s }) = s
-
-focalLength :: UAVSettings -> FocalLength
-focalLength ({ focalLength = l }) = l
-
-focalSize :: UAVSettings -> FocalLength
-focalSize s = s.focalLength
-
-altitude :: UAVSettings -> Meters
-altitude ({ groundAltitude = a }) = a
-
-speed :: UAVSettings -> MetersPerSecond
-speed ({ speed = s }) = s
-
-captureInterval :: UAVSettings -> Seconds
+captureInterval :: UAVSettings -> U.Seconds
 captureInterval ({ captureInterval = c }) = case c of
   i | i <= 0.0 -> 10.0
   i -> i
@@ -58,62 +36,63 @@ shutterSpeed ({ shutterSpeed = s }) = case s of
   v | v <= 0 -> 1000
   v -> v
 
-pixelWidth :: UAVSettings -> Pixels
+pixelWidth :: UAVSettings -> U.Pixels
 pixelWidth s = s.imageDimensions.width
 
-pixelHeight :: UAVSettings -> Pixels
+pixelHeight :: UAVSettings -> U.Pixels
 pixelHeight s = s.imageDimensions.height
 
-sensorDiagonal :: UAVSettings -> Milimeters
+sensorDiagonal :: UAVSettings -> U.Milimeters
 sensorDiagonal s = let
   x = s.sensor.width * s.sensor.width
   y = s.sensor.height * s.sensor.height
   in Math.sqrt $ x + y
 
-diagonalDegrees :: UAVSettings -> Degrees
+diagonalDegrees :: UAVSettings -> U.Degrees
 diagonalDegrees s = 180.0 * 2.0 * (x / Math.pi)
   where
     x = atan $ (sensorDiagonal s) / (2.0 * s.focalLength)
 
-diagonalPixels :: UAVSettings -> Meters
-diagonalPixels s = Math.sqrt(toNumber $ px * px + py * py)
+diagonalPixels :: UAVSettings -> U.Pixels
+diagonalPixels s = Math.sqrt(px * px + py * py)
   where
     px = pixelWidth s
     py = pixelHeight s
 
-diagonalMeters :: UAVSettings -> Meters
+diagonalMeters :: UAVSettings -> U.Meters
 diagonalMeters s = alt * tan
   where
     alt = s.groundAltitude
-    tan = Math.tan $ Math.pi * (diagonalDegrees s) / (2.0 * 180.0)
+    tan = U.Meters $ Math.tan $ Math.pi * (diagonalDegrees s) / (2.0 * 180.0)
 
-imageIntervalMeters :: UAVSettings -> Meters
-imageIntervalMeters s = s.speed * (captureInterval s)
+imageIntervalMeters :: UAVSettings -> U.Meters
+imageIntervalMeters s = U.Meters $ s.speed * (captureInterval s)
 
 angularResolution :: UAVSettings -> Number
 angularResolution s = (diagonalDegrees s) / (diagonalPixels s)
 
-groundPixelSize :: UAVSettings -> Centimeters
-groundPixelSize s = 100.0 * ((diagonalMeters s) / (diagonalPixels s))
+groundPixelSize :: UAVSettings -> U.Centimeters
+groundPixelSize s = 100.0 * ((U.metersToNumber $ diagonalMeters s) / diagonalPixels s)
 
-motionBlurCentimeters :: UAVSettings -> Centimeters
+motionBlurCentimeters :: UAVSettings -> U.Centimeters
 motionBlurCentimeters s = 100.0 * s.speed / (toNumber $ shutterSpeed s)
 
 motionBlurPixels :: UAVSettings -> Number
 motionBlurPixels s = (100.0 * s.speed / (toNumber $ shutterSpeed s)) / (groundPixelSize s)
 
-imageOverlapMeters :: UAVSettings -> Meters
+imageOverlapMeters :: UAVSettings -> U.Meters
 imageOverlapMeters s = yMeters - interval
   where
     yMeters  = groundWidth $ footprint s
     interval = imageIntervalMeters s
 
-imageOverlapPercent :: UAVSettings -> Meters
-imageOverlapPercent s = calc (imageOverlapMeters s) (groundWidth $ footprint s)
+imageOverlapPercent :: UAVSettings -> Number
+imageOverlapPercent s = U.metersToNumber $ calc (imageOverlapMeters s) (groundWidth $ footprint s)
   where
-    calc m gh = case m of
-      v | v <= 0.0 -> 0.0
-      v -> 100.0 * v / gh
+    calc :: U.Meters -> U.Meters -> U.Meters
+    calc (U.Meters n) gh = case n of
+      v | v <= 0.0 -> U.Meters 0.0
+      v -> (U.Meters 100.0) * (U.Meters v) / gh
 
 fieldOfView :: UAVSettings -> Fov
 fieldOfView ({ focalLength = fl, sensor = s }) = { x, y }
@@ -124,13 +103,13 @@ fieldOfView ({ focalLength = fl, sensor = s }) = { x, y }
 footprint :: UAVSettings -> Footprint
 footprint s = { width: wide, height: tall }
   where
-    tall = (toNumber $ pixelHeight s) * (diagonalMeters s) / (diagonalPixels s)
-    wide = (toNumber $ pixelWidth s) * (diagonalMeters s) / (diagonalPixels s)
+    tall = U.Meters $ pixelHeight s * (U.metersToNumber $ diagonalMeters s) / (diagonalPixels s)
+    wide = U.Meters $ pixelWidth s * (U.metersToNumber $ diagonalMeters s) / (diagonalPixels s)
 
-groundHeight :: Footprint -> Meters
+groundHeight :: Footprint -> U.Meters
 groundHeight f = f.height
 
-groundWidth :: Footprint -> Meters
+groundWidth :: Footprint -> U.Meters
 groundWidth f = f.width
 
 degrees :: Number -> Number

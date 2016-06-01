@@ -3,7 +3,8 @@ module Main where
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Prelude (Unit, show, ($), (++))
-import Coverage
+import UAVSettings.Coverage
+import UAVSettings.Units (FocalLength, Meters(Meters))
 
 phantomCamera :: Sensor
 phantomCamera = { width: 6.17, height: 4.55 }
@@ -21,13 +22,13 @@ settings :: UAVSettings
 settings = {
   sensor: phantomCamera
   , focalLength: phantomLens
-  , imageDimensions: { width: 4384, height: 3288 }
+  , imageDimensions: { width: 4384.0, height: 3288.0 }
   , speed: 3.0
-  , captureInterval: 6.0
+  , captureInterval: 3.0
   , shutterSpeed: 1000
   , gimbalX: 30.0
   , gimbalY: 30.0
-  , groundAltitude: 300.0
+  , groundAltitude: Meters 80.0
 }
 
 main :: forall eff. Eff (console :: CONSOLE | eff) Unit
