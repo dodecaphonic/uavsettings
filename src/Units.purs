@@ -20,8 +20,6 @@ import Prelude
   , class Eq
   , mod
   , show
-  , bind
-  , return
   , compare
   , eq
   , (+)
@@ -30,6 +28,7 @@ import Prelude
   , (/)
   , (-)
   , (++)
+  , (<$>)
   )
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen (choose)
@@ -87,9 +86,7 @@ instance centimetersModuloSemiring :: ModuloSemiring Centimeters where
   mod (Centimeters a) (Centimeters b) = Centimeters $ a `mod` b
 
 instance metersArbitrary :: Arbitrary Meters where
-  arbitrary = do
-    n <- choose 0.0 2000.0
-    return $ Meters n
+  arbitrary = Meters <$> (choose 0.0 2000.0)
 
 metersToNumber :: Meters -> Number
 metersToNumber (Meters n) = n
