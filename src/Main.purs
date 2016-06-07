@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
-import Prelude (Unit, show, ($), (++))
+import Prelude (Unit, show, ($), (<>))
 import UAVSettings.Coverage
 import UAVSettings.Units (FocalLength, Meters(Meters))
 
@@ -28,20 +28,20 @@ settings = {
   , shutterSpeed: 1000
   , gimbalX: 30.0
   , gimbalY: 30.0
-  , groundAltitude: Meters 80.0
+  , groundAltitude: Meters 100.0
 }
 
 main :: forall eff. Eff (console :: CONSOLE | eff) Unit
 main = do
-  log $ "Ground pixel size is " ++ (show $ groundPixelSize settings) ++ "\n" ++
-        "Image overlap (m) is " ++ (show $ imageOverlapMeters settings) ++ "\n" ++
-        "Image overlap (%) is " ++ (show $ imageOverlapPercent settings) ++ "\n" ++
-        "Image interval (m) is " ++ (show $ imageIntervalMeters settings) ++ "\n" ++
-        "Image x size is " ++ (show $ (footprint settings).height) ++ "\n" ++
-        "Image y size is " ++ (show $ (footprint settings).width) ++ "\n" ++
-        "Motion blur (cm) is " ++ (show $ motionBlurCentimeters settings) ++ "\n" ++
-        "Motion blur (px) is " ++ (show $ motionBlurPixels settings) ++ "\n" ++
-        "FOV wide (m) is " ++ (show $ fov.x) ++ "\n" ++
-        "FOV tall (m) is " ++ (show $ fov.y) ++ "\n"
+  log $ "Ground pixel size is " <> (show $ groundPixelSize settings) <> "\n" <>
+        "Image overlap (m) is " <> (show $ imageOverlapMeters settings) <> "\n" <>
+        "Image overlap (%) is " <> (show $ imageOverlapPercent settings) <> "\n" <>
+        "Image interval (m) is " <> (show $ imageIntervalMeters settings) <> "\n" <>
+        "Image x size is " <> (show $ (footprint settings).height) <> "\n" <>
+        "Image y size is " <> (show $ (footprint settings).width) <> "\n" <>
+        "Motion blur (cm) is " <> (show $ motionBlurCentimeters settings) <> "\n" <>
+        "Motion blur (px) is " <> (show $ motionBlurPixels settings) <> "\n" <>
+        "FOV wide (m) is " <> (show $ fov.x) <> "\n" <>
+        "FOV tall (m) is " <> (show $ fov.y) <> "\n"
   where
     fov = fieldOfView settings
