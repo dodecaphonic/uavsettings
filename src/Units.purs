@@ -13,8 +13,9 @@ module UAVSettings.Units
 
 import Prelude
   ( class Semiring
-  , class ModuloSemiring
+  , class EuclideanRing
   , class Ring
+  , class CommutativeRing
   , class Show
   , class Ord
   , class Eq
@@ -27,7 +28,7 @@ import Prelude
   , ($)
   , (/)
   , (-)
-  , (++)
+  , (<>)
   , (<$>)
   )
 import Test.QuickCheck.Arbitrary (class Arbitrary)
@@ -50,15 +51,18 @@ instance metersSemiring :: Semiring Meters where
   zero = Meters 0.0
   one = Meters 1.0
 
-instance metersModuloSemiring :: ModuloSemiring Meters where
+instance metersEuclideanRing :: EuclideanRing Meters where
+  degree _ = 1
   div (Meters a) (Meters b) = Meters $ a / b
   mod (Meters a) (Meters b) = Meters $ a `mod` b
 
 instance metersRing :: Ring Meters where
   sub (Meters a) (Meters b) = Meters $ a - b
 
+instance metersCommutativeRing :: CommutativeRing Meters
+
 instance metersShow :: Show Meters where
-  show (Meters n) = (show n) ++ " m"
+  show (Meters n) = (show n) <> " m"
 
 instance metersEq :: Eq Meters where
   eq (Meters a) (Meters b) = eq a b
@@ -67,7 +71,7 @@ instance metersOrd :: Ord Meters where
   compare (Meters a) (Meters b) = compare a b
 
 instance centimetersShow :: Show Centimeters where
-  show (Centimeters n) = (show n) ++ " cm"
+  show (Centimeters n) = (show n) <> " cm"
 
 instance centimetersEq :: Eq Centimeters where
   eq (Centimeters a) (Centimeters b) = eq a b
@@ -81,9 +85,15 @@ instance centimetersSemiring :: Semiring Centimeters where
   zero = Centimeters 0.0
   one = Centimeters 1.0
 
-instance centimetersModuloSemiring :: ModuloSemiring Centimeters where
+instance centimetersEuclideanRing :: EuclideanRing Centimeters where
+  degree _ = 1
   div (Centimeters a) (Centimeters b) = Centimeters $ a / b
   mod (Centimeters a) (Centimeters b) = Centimeters $ a `mod` b
+
+instance centimetersRing :: Ring Centimeters where
+  sub (Centimeters a) (Centimeters b) = Centimeters $ a - b
+
+instance centimetersCommutativeRing :: CommutativeRing Centimeters
 
 instance metersArbitrary :: Arbitrary Meters where
   arbitrary = Meters <$> (choose 0.0 2000.0)

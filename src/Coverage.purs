@@ -1,6 +1,6 @@
 module UAVSettings.Coverage where
 
-import Math (atan)
+import Math (atan, pi, sqrt, tan)
 import Prelude
 import Data.Int (toNumber)
 
@@ -38,12 +38,12 @@ type Footprint = { width :: Meters, height :: Meters }
 type Fov = { x :: Degrees, y :: Degrees }
 
 captureInterval :: UAVSettings -> Seconds
-captureInterval ({ captureInterval = c }) = case c of
+captureInterval ({ captureInterval: c }) = case c of
   i | i <= 0.0 -> 10.0
   i -> i
 
 shutterSpeed :: UAVSettings -> Int
-shutterSpeed ({ shutterSpeed = s }) = case s of
+shutterSpeed ({ shutterSpeed: s }) = case s of
   v | v <= 0 -> 1000
   v -> v
 
@@ -59,24 +59,24 @@ sensorDiagonal s =
     x = s.sensor.width * s.sensor.width
     y = s.sensor.height * s.sensor.height
   in
-    Math.sqrt $ x + y
+    sqrt $ x + y
 
 diagonalDegrees :: UAVSettings -> Degrees
-diagonalDegrees s = 180.0 * 2.0 * (x / Math.pi)
+diagonalDegrees s = 180.0 * 2.0 * (x / pi)
   where
     x = atan $ (sensorDiagonal s) / (2.0 * s.focalLength)
 
 diagonalPixels :: UAVSettings -> Pixels
-diagonalPixels s = Math.sqrt(px * px + py * py)
+diagonalPixels s = sqrt $ px * px + py * py
   where
     px = pixelWidth s
     py = pixelHeight s
 
 diagonalMeters :: UAVSettings -> Meters
-diagonalMeters s = alt * tan
+diagonalMeters s = a * t
   where
-    alt = s.groundAltitude
-    tan = Meters $ Math.tan $ Math.pi * (diagonalDegrees s) / (2.0 * 180.0)
+    a = s.groundAltitude
+    t = Meters $ tan $ pi * (diagonalDegrees s) / (2.0 * 180.0)
 
 imageIntervalMeters :: UAVSettings -> Meters
 imageIntervalMeters s = Meters $ s.speed * (captureInterval s)
@@ -113,7 +113,7 @@ imageOverlapPercent s = calc (imageOverlapMeters s) (footprint s).width
       v -> 100.0 * v / gh
 
 fieldOfView :: UAVSettings -> Fov
-fieldOfView ({ focalLength = fl, sensor = s }) = { x, y }
+fieldOfView ({ focalLength: fl, sensor: s }) = { x, y }
   where
     x = 2.0 * (degrees $ atan (s.width / (2.0 * fl)))
     y = 2.0 * (degrees $ atan (s.height / (2.0 * fl)))
@@ -125,4 +125,4 @@ footprint s = { width: Meters wide, height: Meters tall }
     wide = pixelWidth s * (metersToNumber $ diagonalMeters s) / (diagonalPixels s)
 
 degrees :: Number -> Number
-degrees r = r * (180.0 / Math.pi)
+degrees r = r * (180.0 / pi)
